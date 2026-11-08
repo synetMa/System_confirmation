@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="system_confirmation_root" name="System Confirmation" sequence="40" groups="system_confirmation.group_system_confirmation_user"/>
+
+    <menuitem id="system_confirmation_client_menu" name="Clients" parent="system_confirmation_root" action="action_system_confirmation_client" sequence="1"/>
+    <menuitem id="system_confirmation_colis_menu" name="Colis" parent="system_confirmation_root" action="action_system_confirmation_colis" sequence="2"/>
+    <menuitem id="system_confirmation_origin_menu" name="Origins" parent="system_confirmation_root" action="action_system_confirmation_origin" sequence="3"/>
+    <menuitem id="system_confirmation_reporting_menu" name="Reporting" parent="system_confirmation_root" action="action_system_confirmation_reporting" sequence="4"/>
+    <menuitem id="menu_system_confirmation_settings" name="Settings" parent="system_confirmation_root" action="action_system_confirmation_settings" sequence="90" groups="base.group_system"/>
+    <menuitem id="system_confirmation_villes_menu" name="Villes" parent="system_confirmation_root" action="action_system_confirmation_villes" sequence="5"/>
+    <menuitem id="system_confirmation_keyword_menu" name="Keywords" parent="system_confirmation_root" action="action_system_confirmation_keyword" sequence="6"/>
+</odoo>

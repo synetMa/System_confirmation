@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="system_confirmation_keyword_list" model="ir.ui.view">
+        <field name="name">system.confirmation.keyword.list</field>
+        <field name="model">system.confirmation.keyword</field>
+        <field name="arch" type="xml">
+            <list string="Keywords">
+                <field name="name"/>
+                <field name="ville_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="system_confirmation_keyword_form" model="ir.ui.view">
+        <field name="name">system.confirmation.keyword.form</field>
+        <field name="model">system.confirmation.keyword</field>
+        <field name="arch" type="xml">
+            <form string="Keyword">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="ville_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="system_confirmation_keyword_search" model="ir.ui.view">
+        <field name="name">system.confirmation.keyword.search</field>
+        <field name="model">system.confirmation.keyword</field>
+        <field name="arch" type="xml">
+            <search string="Search Keywords">
+                <field name="name"/>
+                <field name="ville_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_system_confirmation_keyword" model="ir.actions.act_window">
+        <field name="name">Keywords</field>
+        <field name="res_model">system.confirmation.keyword</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="system_confirmation_keyword_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a Keyword</p>
+            <p>Create a keyword linked to a ville.</p>
+        </field>
+    </record>
+</odoo>

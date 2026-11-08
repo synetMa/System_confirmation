@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_system_confirmation" model="ir.ui.view">
+        <field name="name">res.users.form.system.confirmation</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page
+                    string="System Confirmation"
+                    name="system_confirmation"
+                    groups="system_confirmation.group_system_confirmation_user">
+                    <group>
+                        <field name="confirmation_origin_id"/>
+                    </group>
+                    <div class="text-muted">
+                        If an origin is set, this user only sees the colis and clients
+                        coming from that origin. Leave empty to see everything.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

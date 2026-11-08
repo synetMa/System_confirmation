@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="system_confirmation_villes_list" model="ir.ui.view">
+        <field name="name">system.confirmation.villes.list</field>
+        <field name="model">system.confirmation.villes</field>
+        <field name="arch" type="xml">
+            <list string="Villes">
+                <field name="name"/>
+                <field name="code"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="system_confirmation_villes_form" model="ir.ui.view">
+        <field name="name">system.confirmation.villes.form</field>
+        <field name="model">system.confirmation.villes</field>
+        <field name="arch" type="xml">
+            <form string="Villes">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="keyword_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="ville_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="system_confirmation_villes_search" model="ir.ui.view">
+        <field name="name">system.confirmation.villes.search</field>
+        <field name="model">system.confirmation.villes</field>
+        <field name="arch" type="xml">
+            <search string="Search Villes">
+                <field name="name"/>
+                <field name="code"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_system_confirmation_villes" model="ir.actions.act_window">
+        <field name="name">Villes</field>
+        <field name="res_model">system.confirmation.villes</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="system_confirmation_villes_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a Ville</p>
+            <p>Create a ville before creating any colis.</p>
+        </field>
+    </record>
+</odoo>

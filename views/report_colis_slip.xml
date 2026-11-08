@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_colis_label" model="report.paperformat">
+        <field name="name">Colis Label 100x100</field>
+        <field name="default" eval="False" />
+        <field name="format">custom</field>
+        <field name="page_width">100</field>
+        <field name="page_height">100</field>
+        <field name="margin_top">4</field>
+        <field name="margin_bottom">4</field>
+        <field name="margin_left">4</field>
+        <field name="margin_right">4</field>
+        <field name="header_spacing">0</field>
+        <field name="dpi">96</field>
+        <field name="disable_shrinking" eval="True" />
+    </record>
+
+    <record id="action_report_colis_slip" model="ir.actions.report">
+        <field name="name">Delivery Slip</field>
+        <field name="model">system.confirmation.colis</field>
+        <field name="binding_model_id" ref="model_system_confirmation_colis" />
+        <field name="binding_type">report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">system_confirmation.report_colis_slip</field>
+        <field name="report_file">system_confirmation.report_colis_slip</field>
+        <field name="paperformat_id" ref="paperformat_colis_label" />
+    </record>
+
+    <template id="report_colis_slip">
+        <t t-call="web.html_container">
+            <style>
+                .ql-label, .ql-label td, .ql-label div, .ql-label span {
+                    font-family: "DejaVu Sans", "Noto Naskh Arabic", Arial, sans-serif !important;
+                    color: #000;
+                }
+                .ql-label table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+                .ql-label td { padding: 0; vertical-align: top; }
+                .ql-box  { border: 1.5px solid #000; border-radius: 7px; }
+                .ql-pill { display: inline-block; background: #000; color: #fff !important;
+                           font-weight: bold; border-radius: 5px; padding: 1px 12px; }
+                .ql-pill span { color: #fff !important; }
+                .ql-rtl  { direction: rtl; unicode-bidi: embed; text-align: left; }
+            </style>
+
+            <t t-foreach="docs" t-as="o">
+                <div class="page ql-label" t-att-style="'margin: 0; padding: 0; width: 100%; overflow: hidden; page-break-inside: avoid;' + (' page-break-after: always;' if o_index &lt; len(docs) - 1 else '')">
+
+                    <table style="border: 2px solid #000;">
+
+                        <!-- ========== ROW 1 : logo | barcode + tracking pill ========== -->
+                        <tr>
+                            <td style="width: 38%; padding: 5px 8px; border-right: 1px solid #000; vertical-align: middle;">
+                                <img t-if="o.company_id.system_confirmation_quicklivraison_logo" t-att-src="image_data_uri(o.company_id.system_confirmation_quicklivraison_logo)" style="max-height: 40px; max-width: 100px;" alt="QuickLivraison Logo"/>
+                            </td>
+                            <td style="width: 62%; padding: 3px 8px 4px 8px; text-align: center; vertical-align: middle;">
+                                <img t-if="o.barcode" t-att-src="'data:image/png;base64,%s' % o.barcode.decode('utf-8')" style="width: 100%; height: 9mm; display: block; margin: 0 auto;" />
+                                <div class="ql-box" style="margin-top: 2px; padding: 0; border-radius: 5px; border-width: 1px;
+                                                           font-size: 9px; font-weight: bold; text-align: center;">
+                                    <t t-esc="o.tracking_number or ''" />
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- ========== ROW 2 : QR | Expediteur | Zone ========== -->
+                        <tr>
+                            <td colspan="2" style="border-top: 1px solid #000; padding: 0;">
+                                <table>
+                                    <colgroup>
+                                        <col style="width: 20%;" />
+                                        <col style="width: 42%;" />
+                                        <col style="width: 38%;" />
+                                    </colgroup>
+                                    <tr>
+                                        <!-- QR -->
+                                        <td style="padding: 4px 6px; text-align: center; vertical-align: middle;">
+                                            <div class="ql-box" style="display: inline-block; padding: 2px;">
+                                                <img t-if="o.qrcode" t-att-src="'data:image/png;base64,%s' % o.qrcode.decode('utf-8')" style="width: 14mm; height: 14mm; display: block;" />
+                                            </div>
+                                        </td>
+                                        <!-- Expediteur -->
+                                        <td style="padding: 4px 6px; border-left: 1px solid #000; border-right: 1px solid #000;">
+                                            <div style="font-size: 8px; font-weight: bold;">Expéditeur
+                                                (Vendeur) :</div>
+                                            <div style="font-size: 11px; font-weight: bold; margin-top: 2px;">
+                                                <span>
+                                                    STR MATERIEL 
+                                                </span>
+                                            </div>
+                                            <div style="font-size: 10px; font-weight: bold; margin-top: 2px;">
+                                                0699336602          
+                                            </div>
+                                            <div style="margin-top: 3px;">
+                                                <span class="ql-pill" style="font-size: 8px;">
+                                                    <span>RAMASSÉ</span>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <!-- Zone -->
+                                        <td style="padding: 4px 6px; vertical-align: middle;">
+                                            <div class="ql-box" style="padding: 4px 6px; text-align: center;">
+                                                <div style="font-size: 9px; font-weight: bold;">
+                                                    <t t-esc="o.client_ville.name or ''" />
+                                                </div>
+                                                <div style="border-top: 1px solid #999; margin: 4px 8px;"></div>
+                                                <div style="font-size: 15px; font-weight: bold;">
+                                                    <t t-esc="o.client_ville.name or ''" />
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <!-- ========== ROW 3 : section headers ========== -->
+                        <tr>
+                            <td colspan="2" style="border-top: 1px solid #000; padding: 0;">
+                                <table>
+                                    <colgroup>
+                                        <col style="width: 62%;" />
+                                        <col style="width: 38%;" />
+                                    </colgroup>
+                                    <tr>
+                                        <td style="padding: 2px 6px; font-size: 9px; font-weight: bold; border-right: 1px solid #000;">
+                                            DESTINATAIRE
+                                        </td>
+                                        <td style="padding: 2px 4px; font-size: 8px; font-weight: bold;
+                                                   background: #000; color: #fff; text-align: center;">
+                                            <span style="color: #fff !important;">MONTANT À PAYER
+                                                (CRBT)</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <!-- ========== ROW 4 : client details | amount ========== -->
+                        <tr>
+                            <td colspan="2" style="border-top: 1px solid #000; padding: 0;">
+                                <table>
+                                    <colgroup>
+                                        <col style="width: 62%;" />
+                                        <col style="width: 38%;" />
+                                    </colgroup>
+                                    <tr>
+                                        <!-- Client block -->
+                                        <td style="padding: 4px 6px; border-right: 1px solid #000; position: relative;">
+                                            <table>
+                                                <colgroup>
+                                                    <col style="width: 78%;" />
+                                                    <col style="width: 22%;" />
+                                                </colgroup>
+                                                <tr>
+                                                    <td>
+                                                        <div style="font-size: 8px;">
+                                                            <strong>Client :</strong>
+                                                            <strong style="font-size: 10px; margin-left: 6px;">
+                                                                <t t-if="o.client.name">
+                                                                    <t t-if="o.client.name" t-esc="o.client.name + (' (%s)' % o.origin.name if o.origin.name else '')" />
+                                                                </t>
+                                                            </strong>
+                                                        </div>
+                                                        <div style="font-size: 8px; margin-top: 3px;">
+                                                            <strong>Téléphone :</strong>
+                                                            <strong style="font-size: 11px;">
+                                                                <t t-esc="o.client.telephone or ''" />
+                                                            </strong>
+                                                        </div>
+                                                        <div style="font-size: 8px; margin-top: 3px;">
+                                                            <strong>Adresse :</strong>
+                                                            <strong class="ql-rtl" style="font-size: 9px; margin-left: 6px;">
+                                                                <t t-esc="o.client_adresse or ''" />
+                                                            </strong>
+                                                        </div>
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <img t-if="o.client_qrcode" t-att-src="'data:image/png;base64,%s' % o.client_qrcode.decode('utf-8')" style="width: 10mm; height: 10mm;" />
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            <div style="font-size: 8px; margin-top: 6px;">
+                                                <strong>Note :</strong>
+                                                <span style="margin-left: 14px;">                                                    <!-- TODO: replace
+                                                    '-' with the real note field, e.g. <t t-esc="o.YOUR_NOTE_FIELD or '-'"/> -->-</span>
+                                            </div>
+                                        </td>
+                                        <!-- Amount block -->
+                                        <td style="padding: 5px 6px; vertical-align: middle;">
+                                            <div class="ql-box" style="padding: 5px 4px; text-align: center;">
+                                                <div style="font-size: 20px; font-weight: bold;">
+                                                    <t t-esc="o.amount" />
+                                                </div>
+                                                <div style="margin-top: 4px;">
+                                                    <span class="ql-pill" style="font-size: 8px;">
+                                                        <span>
+                                                            <t t-esc="o.currency_id.name or 'DH'" />
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <!-- ========== ROW 5 : Marchandise ========== -->
+                        <t t-set="product_text" t-value="' + '.join([
+                                ((line.product_reference + ' - ') if line.product_reference else '')
+                                + line.product_id.name
+                                + ' x ' + str(line.quantity)
+                                for line in o.items_line_ids
+                            ])"/>
+
+                        <t t-set="max_length" t-value="180"/>
+                        <t t-set="is_truncated" t-value="len(product_text) &gt; max_length"/>
+
+                        <tr>
+                            <td colspan="2" style="border-top: 1px solid #000;
+                                padding: 3px 6px;
+                                height: 9mm;
+                                max-height: 9mm;">
+
+                                <div style="height: 7mm;
+                    max-height: 7mm;
+                    overflow: hidden;
+                    font-size: 6px;
+                    line-height: 1.1;
+                    overflow-wrap: anywhere;
+                    word-wrap: break-word;">
+
+                                    <strong style="font-size: 8px;">
+                Marchandise :
+                                    </strong>
+
+                                    <span style="margin-left: 4px;">
+                                        <t t-esc="product_text[:max_length]"/>
+
+                                        <t t-if="is_truncated">
+                    ... ⚠
+                                        </t>
+                                    </span>
+
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- ========== ROW 6 : Ouverture / Essayage ========== -->
+                        <tr>
+                            <td colspan="2" style="border-top: 1px solid #000; padding: 3px 4px;">
+                                <table>
+                                    <colgroup>
+                                        <col style="width: 50%;" />
+                                        <col style="width: 50%;" />
+                                    </colgroup>
+                                    <tr>
+                                        <td style="padding: 0 3px;">
+                                            <div class="ql-box" style="color:white;background-color:black;border-radius: 6px; padding: 2px 6px; font-size: 8px; font-weight: bold; text-align: center;background-color: black;">
+                                                <span style="float: left;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="#fff" width="10px" height="10px" viewBox="0 0 1920 1920">
+                                                        <path d="M1743.858 267.012 710.747 1300.124 176.005 765.382 0 941.387l710.747 710.871 1209.24-1209.116z" fill-rule="evenodd" />
+                                                    </svg>
+                                                </span>
+                                                OUVERTURE : OUI </div>
+                                        </td>
+                                        <td style="padding: 0 3px;">
+                                            <div class="ql-box" style="border-radius: 6px; padding: 2px 6px; font-size: 8px; font-weight: bold; text-align: center;">
+                                                <span style="float: left;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="10px" height="10px" viewBox="0 -0.5 21 21" version="1.1">
+
+                                                        <title>close [#1511]</title>
+                                                        <desc>Created with Sketch.</desc>
+                                                        <defs>
+
+                                                        </defs>
+                                                        <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                            <g id="Dribbble-Light-Preview" transform="translate(-419.000000, -240.000000)" fill="#000000">
+                                                                <g id="icons" transform="translate(56.000000, 160.000000)">
+                                                                    <polygon id="close-[#1511]" points="375.0183 90 384 98.554 382.48065 100 373.5 91.446 364.5183 100 363 98.554 371.98065 90 363 81.446 364.5183 80 373.5 88.554 382.48065 80 384 81.446">
+
+                                                                    </polygon>
+                                                                </g>
+                                                            </g>
+                                                        </g>
+                                                    </svg>
+                                                </span>
+                                                ESSAYAGE : NON </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <!-- ========== ROW 7 : footer disclaimer FR + AR ========== -->
+                        <tr>
+                            <td colspan="2" style="border-top: 1px solid #000; padding: 3px 4px; text-align: center;">
+                                <div style="font-size: 6px; font-weight: bold;">
+                                    Quick Livraison assure le transport. Pour le contenu, voir avec
+                                    l'expéditeur.
+                                </div>
+                                <div style="font-size: 6px; font-weight: bold; direction: rtl; unicode-bidi: embed; margin-top: 1px;">
+                                    كويك ليفريزون مكلفة بالتوصيل فقط. بخصوص المحتوى، يرجى التواصل مع
+                                    المرسل.
+                                </div>
+                            </td>
+                        </tr>
+
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="demo_origin_website" model="system.confirmation.origin">
+        <field name="name">Website</field>
+    </record>
+    <record id="demo_origin_marketplace" model="system.confirmation.origin">
+        <field name="name">Marketplace</field>
+    </record>
+
+    <record id="demo_client_1" model="system.confirmation.client">
+        <field name="name">Demo Client</field>
+        <field name="telephone">0600000001</field>
+        <field name="ville">Casablanca</field>
+        <field name="adresse">12 Rue Example</field>
+    </record>
+    <record id="demo_client_2" model="system.confirmation.client">
+        <field name="name">Demo Client 2</field>
+        <field name="telephone">0600000002</field>
+        <field name="ville">Rabat</field>
+        <field name="adresse">34 Avenue Demo</field>
+    </record>
+
+    <record id="demo_product" model="product.product">
+        <field name="name">Demo Colis Product</field>
+        <field name="type">consu</field>
+        <field name="list_price">100.0</field>
+        <field name="standard_price">60.0</field>
+    </record>
+
+    <record id="demo_colis_1" model="system.confirmation.colis">
+        <field name="client" ref="demo_client_1"/>
+        <field name="origin" ref="demo_origin_website"/>
+        <field name="colis_state">draft</field>
+    </record>
+    <record id="demo_colis_line_1" model="system.confirmation.colis.lines">
+        <field name="colis_id" ref="demo_colis_1"/>
+        <field name="product_id" ref="demo_product"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="quantity">2.0</field>
+        <field name="online_price">100.0</field>
+        <field name="cost_price">60.0</field>
+    </record>
+
+    <record id="demo_colis_2" model="system.confirmation.colis">
+        <field name="client" ref="demo_client_2"/>
+        <field name="origin" ref="demo_origin_marketplace"/>
+        <field name="colis_state">draft</field>
+    </record>
+    <record id="demo_colis_line_2" model="system.confirmation.colis.lines">
+        <field name="colis_id" ref="demo_colis_2"/>
+        <field name="product_id" ref="demo_product"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="quantity">1.0</field>
+        <field name="online_price">100.0</field>
+        <field name="cost_price">60.0</field>
+    </record>
+</odoo>

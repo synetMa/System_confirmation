@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_system_confirmation_retry_api" model="ir.cron">
+        <field name="name">System Confirmation: retry failed QuickLivraison sends</field>
+        <field name="model_id" ref="model_system_confirmation_colis"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_retry_failed_api()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+    <record id="ir_cron_system_confirmation_sync_status" model="ir.cron">
+        <field name="name">System Confirmation: sync QuickLivraison status</field>
+        <field name="model_id" ref="model_system_confirmation_colis"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_sync_status_from_api()</field>
+        <field name="interval_number">15</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

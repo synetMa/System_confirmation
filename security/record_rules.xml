@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_system_confirmation_colis_origin" model="ir.rule">
+        <field name="name">Colis: only allowed origins</field>
+        <field name="model_id" ref="model_system_confirmation_colis"/>
+        <field name="domain_force">[('origin', 'in', user.allowed_origin_ids.ids)]</field>
+    </record>
+
+    <record id="rule_system_confirmation_colis_lines_origin" model="ir.rule">
+        <field name="name">Colis lines: only allowed origins</field>
+        <field name="model_id" ref="model_system_confirmation_colis_lines"/>
+        <field name="domain_force">[('colis_id.origin', 'in', user.allowed_origin_ids.ids)]</field>
+    </record>
+
+    <record id="rule_system_confirmation_client_origin" model="ir.rule">
+        <field name="name">Clients: only allowed clients</field>
+        <field name="model_id" ref="model_system_confirmation_client"/>
+        <field name="domain_force">['|', ('id', 'in', user.allowed_client_ids.ids), ('colis_ids.origin', 'in', user.allowed_origin_ids.ids)]</field>
+    </record>
+
+    <record id="rule_system_confirmation_return_origin" model="ir.rule">
+        <field name="name">Parcel returns restricted by origin</field>
+        <field name="model_id" ref="model_system_confirmation_return"/>
+        <field name="domain_force">[('colis_id.origin', 'in', user.allowed_origin_ids.ids)]</field>
+    </record>
+
+    <record id="rule_system_confirmation_return_line_origin" model="ir.rule">
+        <field name="name">Parcel return lines restricted by origin</field>
+        <field name="model_id" ref="model_system_confirmation_return_line"/>
+        <field name="domain_force">[('return_id.colis_id.origin', 'in', user.allowed_origin_ids.ids)]</field>
+    </record>
+</odoo>

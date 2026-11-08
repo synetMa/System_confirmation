@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="system_confirmation_colis_list" model="ir.ui.view">
+        <field name="name">system.confirmation.colis.list</field>
+        <field name="model">system.confirmation.colis</field>
+        <field name="arch" type="xml">
+            <list decoration-success="delivery_status in ('Livree', 'Payee') or (delivery_status in (False, 'Brouillon') and not out_of_stock and colis_state == 'delivered')"
+                  decoration-info="delivery_status in (False, 'Brouillon') and not out_of_stock and colis_state in ('confirmed', 'PICKED_UP', 'PICKED_UP_RAMASSEUR', 'Recu', 'Expedie', 'EN_VOYAGE', 'Distribution', 'CLIENT_INTERESE', 'RELENCE_NEW_CLIENT')"
+                  decoration-warning="delivery_status == 'Encours' or (delivery_status in (False, 'Brouillon') and not out_of_stock and colis_state in ('Pending', 'WAITING_PICKUP', 'Encours', 'POSTPONED', 'PROGRAMMER', 'LATER', 'NOANSWER', 'DEUX', 'TROIS', 'QUATRE', 'WAIT_RELANCE', 'RETURNED_CLIENT'))"
+                  decoration-danger="delivery_status in ('Retournee', 'Perdu') or (delivery_status in (False, 'Brouillon') and not out_of_stock and colis_state in ('UNREACHABLE', 'INJOI', 'ERR', 'OUT_OF_AREA', 'REFUSE', 'Retourne', 'DOUBLE'))"
+                  decoration-muted="delivery_status == 'Annulee' or (delivery_status in (False, 'Brouillon') and (out_of_stock or colis_state in ('draft', 'cancelled', 'CANCELED', 'ANN', 'CANCELED_BY_VENDEUR')))">
+                <field name="create_date"/>
+                <field name="name"/>
+                <field name="origin"/>
+                <field name="client"/>
+                <field name="client_adresse" />
+                <field name="client_ville" />
+                <field name="colis_state" widget="badge"
+                       decoration-success="colis_state == 'delivered'"
+                       decoration-info="colis_state in ('confirmed', 'PICKED_UP', 'PICKED_UP_RAMASSEUR', 'Recu', 'Expedie', 'EN_VOYAGE', 'Distribution', 'CLIENT_INTERESE', 'RELENCE_NEW_CLIENT')"
+                       decoration-warning="colis_state in ('Pending', 'WAITING_PICKUP', 'Encours', 'POSTPONED', 'PROGRAMMER', 'LATER', 'NOANSWER', 'DEUX', 'TROIS', 'QUATRE', 'WAIT_RELANCE', 'RETURNED_CLIENT')"
+                       decoration-danger="colis_state in ('UNREACHABLE', 'INJOI', 'ERR', 'OUT_OF_AREA', 'REFUSE', 'Retourne', 'DOUBLE')"
+                       decoration-muted="colis_state in ('draft', 'cancelled', 'CANCELED', 'ANN', 'CANCELED_BY_VENDEUR')"/>
+                <field name="delivery_status" widget="badge" optional="show"
+                       decoration-success="delivery_status in ('Livree', 'Payee')"
+                       decoration-warning="delivery_status == 'Encours'"
+                       decoration-danger="delivery_status in ('Retournee', 'Perdu')"
+                       decoration-muted="delivery_status in ('Brouillon', 'Annulee')"/>
+                <field name="api_state" widget="badge" optional="hide" decoration-success="api_state == 'sent'" decoration-danger="api_state == 'error'" decoration-muted="api_state == 'draft'"/>
+                <field name="out_of_stock" widget="boolean_toggle" optional="show"/>
+                <field name="stock_state" widget="badge" optional="hide"/>
+                <field name="pdf_state" widget="badge" optional="hide"/>
+                <field name="amount"/>
+                <field name="total_cost" optional="hide"/>
+                <field name="shipping_cost" optional="hide" readonly="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="system_confirmation_colis_kanban" model="ir.ui.view">
+        <field name="name">system.confirmation.colis.kanban</field>
+        <field name="model">system.confirmation.colis</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="name"/>
+                <field name="client"/>
+                <field name="origin"/>
+                <field name="colis_state"/>
+                <field name="delivery_status"/>
+                <field name="amount"/>
+                <field name="currency_id"/>
+                <field name="date"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="o_kanban_record_headings">
+                                <strong class="o_kanban_record_title">
+                                    <field name="name"/>
+                                </strong>
+                            </div>
+                            <field name="colis_state" widget="badge"
+                                   decoration-success="colis_state == 'delivered'"
+                                   decoration-info="colis_state in ('confirmed', 'PICKED_UP', 'PICKED_UP_RAMASSEUR', 'Recu', 'Expedie', 'EN_VOYAGE', 'Distribution', 'CLIENT_INTERESE', 'RELENCE_NEW_CLIENT')"
+                                   decoration-warning="colis_state in ('Pending', 'WAITING_PICKUP', 'Encours', 'POSTPONED', 'PROGRAMMER', 'LATER', 'NOANSWER', 'DEUX', 'TROIS', 'QUATRE', 'WAIT_RELANCE', 'RETURNED_CLIENT')"
+                                   decoration-danger="colis_state in ('UNREACHABLE', 'INJOI', 'ERR', 'OUT_OF_AREA', 'REFUSE', 'Retourne', 'DOUBLE')"
+                                   decoration-muted="colis_state in ('draft', 'cancelled', 'CANCELED', 'ANN', 'CANCELED_BY_VENDEUR')"/>
+                        </div>
+                        <div t-if="delivery_status">
+                            <field name="delivery_status" widget="badge"
+                                   decoration-success="delivery_status in ('Livree', 'Payee')"
+                                   decoration-warning="delivery_status == 'Encours'"
+                                   decoration-danger="delivery_status in ('Retournee', 'Perdu')"
+                                   decoration-muted="delivery_status in ('Brouillon', 'Annulee')"/>
+                        </div>
+                        <div class="text-muted">
+                            <field name="client"/>
+                            <field name="origin"/>
+                        </div>
+                        <div class="d-flex justify-content-between mt-3">
+                            <field name="date"/>
+                            <field name="amount"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="system_confirmation_colis_form" model="ir.ui.view">
+        <field name="name">system.confirmation.colis.form</field>
+        <field name="model">system.confirmation.colis</field>
+        <field name="arch" type="xml">
+            <form string="colis">
+                <header>
+                    <button invisible="colis_state != 'draft' or out_of_stock" name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                    <button name="action_print_label" string="Print Report" type="object" class="btn-secondary"/>
+                    <button invisible="not ticket_attachment_id" name="action_download_pdf" string="Download PDF" type="object" class="btn-secondary"/>
+                    <button invisible="not tracking_number or ticket_attachment_id" name="action_retry_pdf" string="Retry PDF Download" type="object"/>
+                    <button invisible="stock_state != 'error'" name="action_retry_stock" string="Retry Stock" type="object" groups="system_confirmation.group_system_confirmation_manager"/>
+                    <button invisible="colis_state == 'draft' or stock_state != 'done' or return_status == 'full'" name="action_register_return" string="Register Return" type="object"/>
+                    <button invisible="archive_state != 'stock_error'" name="action_retry_archive" string="Retry Archive" type="object" groups="system_confirmation.group_system_confirmation_manager"/>
+                    <button name="action_archive" string="Archive" type="object" groups="system_confirmation.group_system_confirmation_manager" confirm="Archive this parcel and synchronize QuickLivraison and stock?"/>
+                    <field name="colis_state" widget="statusbar" statusbar_visible="draft,confirmed,Recu,Expedie,Distribution,Encours,delivered"/>
+                    <field name="delivery_status" widget="statusbar" statusbar_visible="Encours,Livree,Payee" readonly="True"/>
+                    <field name="api_state" widget="statusbar" statusbar_visible="draft,sent,error" readonly="True"/>
+                    <button name="action_deliver" string="Mettre à jour le statut" type="object" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="origin" />
+                            <field name="client" />
+                            <field name="client_adresse" />
+                            <field name="client_ville" />
+                            <!-- <field name="client_qrcode" readonly="True" widget="image"/> -->
+                            <field name="date" readonly="1" />
+                        </group>
+                        <group>
+                            <field name="amount" />
+                            <field name="shipping_cost" />
+                            <field name="cost_of_packaging" readonly="1" />
+                            <!-- <field name="barcode" readonly="True" widget="image"/> -->
+                        <!-- <field name="qrcode" readonly="True" widget="image"/> -->
+                            <field name="message_api" readonly="True"/>
+                            <field name="tracking_number" readonly="True"/>
+                            <field name="out_of_stock" widget="boolean_toggle" readonly="colis_state != 'draft'"/>
+                            <field name="stock_state" readonly="1"/>
+                            <field name="stock_error" readonly="1" invisible="not stock_error"/>
+                            <field name="pdf_state" readonly="1"/>
+                            <field name="pdf_error" readonly="1" invisible="not pdf_error"/>
+                            <field name="ticket_attachment_id" readonly="1" invisible="1"/>
+                            <field name="archive_state" readonly="1" invisible="archive_state == 'none'"/>
+                            <field name="archive_error" readonly="1" invisible="not archive_error"/>
+                            <field name="return_status" readonly="1"/>
+                        </group>
+                        <notebook>
+                            <page string="Produits" name="products">
+                                <field name="items_line_ids" readonly="colis_state != 'draft'">
+                                    <list editable="bottom" create="1">
+                                        <field name="product_id" options="{'no_create': True}" />
+                                        <field name="product_reference" optional="show"/>
+                                        <field name="uom_id" optional="hide"/>
+                                        <field name="quantity"/>
+                                        <field name="online_price"/>
+                                        <field name="subtotal" readonly="True" sum="Ventes"/>
+                                        <field name="cost_total" readonly="True" optional="hide" sum="Coût" />
+                                        <field name="profit" readonly="True" optional="hide" sum="Bénéfice"/>
+                                        <field name="margin_percent" readonly="True" optional="hide"/>
+                                    </list>
+                                </field>
+                                <div class="row justify-content-end mt-4">
+                                    <div class="">
+                                        <group>
+                                            <field name="total_cost" readonly="True" />
+                                            <field name="gross_profit" readonly="True" />
+                                            <field name="margin_percent" readonly="True"/>
+                                            <field name="amount_total" readonly="True" class="oe_subtotal_footer_separator"/>
+                                        </group>
+                                    </div>
+                                </div>
+                            </page>
+                            <page string="Returns" name="returns">
+                                <field name="return_ids" readonly="1">
+                                    <list>
+                                        <field name="name"/>
+                                        <field name="source"/>
+                                        <field name="state" widget="badge"/>
+                                        <field name="registered_by"/>
+                                        <field name="registered_at"/>
+                                        <field name="validated_by"/>
+                                        <field name="validated_at"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="system_confirmation_colis_search" model="ir.ui.view">
+        <field name="name">system.confirmation.colis.search</field>
+        <field name="model">system.confirmation.colis</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher un colis">
+                <field name="name"/>
+                <field name="client" string="Client"/>
+                <field name="origin"/>
+                <field name="date"/>
+                <filter name="filter_draft" string="Brouillon" domain="[('colis_state', '=', 'draft')]"/>
+                <filter name="filter_confirmed" string="Confirmé" domain="[('colis_state', '=', 'confirmed')]"/>
+                <filter name="filter_recu" string="Reçu" domain="[('colis_state', '=', 'Recu')]"/>
+                <filter name="filter_expedie" string="Expédié" domain="[('colis_state', '=', 'Expedie')]"/>
+                <filter name="filter_distribution" string="En distribution" domain="[('colis_state', '=', 'Distribution')]"/>
+                <filter name="filter_encours" string="Encours" domain="[('colis_state', '=', 'Encours')]"/>
+                <filter name="filter_delivered" string="Livré" domain="[('colis_state', '=', 'delivered')]"/>
+                <filter name="filter_retourne" string="Retourné" domain="[('colis_state', '=', 'Retourne')]"/>
+                <filter name="filter_error" string="Erreurs API" domain="[('api_state', '=', 'error')]"/>
+                <separator/>
+                <filter name="filter_livraison_encours" string="Livraison : Encours" domain="[('delivery_status', '=', 'Encours')]"/>
+                <filter name="filter_livraison_livree" string="Livraison : Livrée" domain="[('delivery_status', '=', 'Livree')]"/>
+                <filter name="filter_livraison_payee" string="Livraison : Payée" domain="[('delivery_status', '=', 'Payee')]"/>
+                <filter name="filter_livraison_retournee" string="Livraison : Retournée" domain="[('delivery_status', '=', 'Retournee')]"/>
+                <filter name="filter_livraison_annulee" string="Livraison : Annulée" domain="[('delivery_status', '=', 'Annulee')]"/>
+                <filter name="filter_livraison_perdu" string="Livraison : Perdu" domain="[('delivery_status', '=', 'Perdu')]"/>
+                <group expand="0" string="Grouper par">
+                    <filter name="group_state" string="Statut" context="{'group_by': 'colis_state'}"/>
+                    <filter name="group_delivery_status" string="Statut de livraison" context="{'group_by': 'delivery_status'}"/>
+                    <filter name="group_origin" string="Origine" context="{'group_by': 'origin'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_system_confirmation_colis" model="ir.actions.act_window">
+        <field name="name">Colis</field>
+        <field name="res_model">system.confirmation.colis</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="system_confirmation_colis_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Créer un colis</p>
+            <p>Créez un colis avant de créer des commandes.</p>
+        </field>
+    </record>
+
+    <record id="action_bulk_confirm_colis" model="ir.actions.server">
+        <field name="name">Confirm Selected Parcels</field>
+        <field name="model_id" ref="model_system_confirmation_colis"/>
+        <field name="binding_model_id" ref="model_system_confirmation_colis"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">records.action_confirm()</field>
+    </record>
+
+    <record id="action_bulk_download_quicklivraison_pdf" model="ir.actions.server">
+        <field name="name">QuickLivraison PDFs</field>
+        <field name="model_id" ref="model_system_confirmation_colis"/>
+        <field name="binding_model_id" ref="model_system_confirmation_colis"/>
+        <field name="binding_view_types">list</field>
+        <field name="binding_type">report</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_download_bulk_quicklivraison_pdf()</field>
+    </record>
+</odoo>

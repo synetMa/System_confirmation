@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_system_confirmation_colis_lines_search" model="ir.ui.view">
+        <field name="name">system.confirmation.colis.lines.search</field>
+        <field name="model">system.confirmation.colis.lines</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher des lignes">
+                <field name="product_id"/>
+                <field name="origin"/>
+                <field name="client"/>
+                <field name="colis_id"/>
+                <field name="date"/>
+                <filter name="filter_active_colis" string="Colis actifs" domain="[('colis_id.active', '=', True)]"/>
+                <filter name="filter_archived_colis" string="Colis archivés" domain="[('colis_id.active', '=', False)]"/>
+                <separator/>
+                <filter name="filter_draft" string="Brouillon" domain="[('colis_state', '=', 'draft')]"/>
+                <filter name="filter_confirmed" string="Confirmé" domain="[('colis_state', '=', 'confirmed')]"/>
+                <filter name="filter_delivered" string="Livré" domain="[('colis_state', '=', 'delivered')]"/>
+                <separator/>
+                <filter name="filter_colis_date" string="Mois du colis" date="date"/>
+                <group expand="0" string="Grouper par">
+                    <filter name="group_product" string="Produit" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_origin" string="Origine" context="{'group_by': 'origin'}"/>
+                    <filter name="group_client" string="Client" context="{'group_by': 'client'}"/>
+                    <filter name="group_state" string="Statut" context="{'group_by': 'colis_state'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_system_confirmation_colis_lines_pivot" model="ir.ui.view">
+        <field name="name">system.confirmation.colis.lines.pivot</field>
+        <field name="model">system.confirmation.colis.lines</field>
+        <field name="arch" type="xml">
+            <pivot string="Analyse des colis">
+                <field name="product_id" type="row"/>
+                <field name="origin" type="row"/>
+                <field name="date" type="col"/>
+                <field name="quantity" type="measure"/>
+                <field name="subtotal" type="measure"/>
+                <field name="profit" type="measure"/>
+                <field name="shipping_cost" type="measure"/>
+                <field name="cost_of_packaging" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_system_confirmation_colis_lines_graph" model="ir.ui.view">
+        <field name="name">system.confirmation.colis.lines.graph</field>
+        <field name="model">system.confirmation.colis.lines</field>
+        <field name="arch" type="xml">
+            <graph string="Analyse des colis" type="bar">
+                <field name="product_id"/>
+                <field name="subtotal" type="measure"/>
+                <field name="profit" type="measure"/>
+                <field name="shipping_cost" type="measure"/>
+                <field name="cost_of_packaging" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_system_confirmation_shipping_search" model="ir.ui.view">
+        <field name="name">system.confirmation.colis.shipping.search</field>
+        <field name="model">system.confirmation.colis</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher les frais de livraison">
+                <field name="origin"/>
+                <field name="client"/>
+                <field name="date"/>
+                <filter name="filter_with_shipping" string="Avec frais de livraison" domain="[('shipping_cost', '&gt;', 0)]"/>
+                <filter name="filter_draft" string="Brouillon" domain="[('colis_state', '=', 'draft')]"/>
+                <filter name="filter_confirmed" string="Confirmé" domain="[('colis_state', '=', 'confirmed')]"/>
+                <filter name="filter_delivered" string="Livré" domain="[('colis_state', '=', 'delivered')]"/>
+                <separator/>
+                <filter name="filter_colis_date" string="Mois du colis" date="date"/>
+                <group expand="0" string="Grouper par">
+                    <filter name="group_origin" string="Origine" context="{'group_by': 'origin'}"/>
+                    <filter name="group_client" string="Client" context="{'group_by': 'client'}"/>
+                    <filter name="group_state" string="Statut" context="{'group_by': 'colis_state'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_system_confirmation_shipping_pivot" model="ir.ui.view">
+        <field name="name">system.confirmation.colis.shipping.pivot</field>
+        <field name="model">system.confirmation.colis</field>
+        <field name="arch" type="xml">
+            <pivot string="Analyse des livraisons">
+                <field name="origin" type="row"/>
+                <field name="date" type="col"/>
+                <field name="shipping_cost" type="measure"/>
+                <field name="cost_of_packaging" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_system_confirmation_shipping_graph" model="ir.ui.view">
+        <field name="name">system.confirmation.colis.shipping.graph</field>
+        <field name="model">system.confirmation.colis</field>
+        <field name="arch" type="xml">
+            <graph string="Analyse des livraisons" type="bar">
+                <field name="origin"/>
+                <field name="shipping_cost" type="measure"/>
+                <field name="cost_of_packaging" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_system_confirmation_shipping_reporting" model="ir.actions.act_window">
+        <field name="name">Analyse des livraisons</field>
+        <field name="res_model">system.confirmation.colis</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="search_view_id" ref="view_system_confirmation_shipping_search"/>
+        <field name="context">{'search_default_group_origin': 1}</field>
+    </record>
+
+    <record id="action_system_confirmation_reporting" model="ir.actions.act_window">
+        <field name="name">Analyse des colis</field>
+        <field name="res_model">system.confirmation.colis.lines</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="search_view_id" ref="view_system_confirmation_colis_lines_search"/>
+        <field name="context">{'search_default_group_product': 1, 'search_default_filter_active_colis': 1}</field>
+    </record>
+</odoo>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_system_confirmation_colis" model="ir.sequence">
+        <field name="name">System Confirmation Colis</field>
+        <field name="code">system.confirmation.colis</field>
+        <field name="prefix">COLIS/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_system_confirmation_return" model="ir.sequence">
+        <field name="name">Parcel Return</field>
+        <field name="code">system.confirmation.return</field>
+        <field name="prefix">RETURN/%(year)s/</field>
+        <field name="padding">4</field>
+    </record>
+</odoo>

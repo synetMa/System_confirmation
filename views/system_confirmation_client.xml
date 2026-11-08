@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="system_confirmation_client_list" model="ir.ui.view">
+        <field name="name">system.confirmation.client.list</field>
+        <field name="model">system.confirmation.client</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_clients">
+                <templates>
+                    <t t-name="card" class="flex-row align-items-center gap-3 p-3">
+                        <!-- Avatar with initial -->
+                        <div class="o_client_avatar flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle fw-bold text-white">
+                            <t t-esc="(record.name.value || '?').charAt(0).toUpperCase()"/>
+                        </div>
+
+                        <!-- Info -->
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="fw-bold fs-5 text-truncate">
+                                <field name="name"/>
+                            </div>
+                            <div t-if="record.telephone.value" class="text-muted text-truncate">
+                                <i class="fa fa-phone me-2" title="Téléphone" role="img" aria-label="Téléphone"/>
+                                <field name="telephone" widget="phone"/>
+                            </div>
+                        </div>
+
+                        <!-- City badge -->
+                        <span t-if="record.ville.value" class="badge rounded-pill text-bg-light border align-self-start">
+                            <i class="fa fa-map-marker me-1" role="img" aria-label="Ville"/>
+                            <field name="ville"/>
+                        </span>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="system_confirmation_client_form" model="ir.ui.view">
+        <field name="name">system.confirmation.client.form</field>
+        <field name="model">system.confirmation.client</field>
+        <field name="arch" type="xml">
+            <form string="Client">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_colis" type="object" class="oe_stat_button" icon="fa-cubes">
+                            <field name="colis_count" widget="statinfo" string="Colis"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="telephone" />
+                            <field name="ville" />
+                            <field name="adresse" /> 
+                            <field name="qrcode" readonly="True" widget="image"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="system_confirmation_client_search" model="ir.ui.view">
+        <field name="name">system.confirmation.client.search</field>
+        <field name="model">system.confirmation.client</field>
+        <field name="arch" type="xml">
+            <search string="Search Distributors">
+                <field name="name"/>
+                <field name="telephone"/>
+                <field name="ville"/>
+                <!-- <filter name="archived" string="Archived" domain="[('active', '=', False)]"/> -->
+                <group expand="0" string="Group By">
+                    <filter name="group_ville" string="Ville" context="{'group_by': 'ville'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_system_confirmation_client" model="ir.actions.act_window">
+        <field name="name">Clients</field>
+        <field name="res_model">system.confirmation.client</field>
+        <field name="view_mode">kanban,form</field>
+        <field name="search_view_id" ref="system_confirmation_client_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a Client</p>
+            <p>Create a client before creating any colis.</p>
+        </field>
+    </record>
+</odoo>

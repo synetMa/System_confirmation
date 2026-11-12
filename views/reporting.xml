@@ -42,6 +42,7 @@
                 <field name="profit" type="measure"/>
                 <field name="shipping_cost" type="measure"/>
                 <field name="cost_of_packaging" type="measure"/>
+                <field name="amount" type="measure" />
             </pivot>
         </field>
     </record>
@@ -56,6 +57,7 @@
                 <field name="profit" type="measure"/>
                 <field name="shipping_cost" type="measure"/>
                 <field name="cost_of_packaging" type="measure"/>
+                <field name="amount" type="measure" />
             </graph>
         </field>
     </record>
@@ -93,8 +95,9 @@
                 <field name="date" type="col"/>
                 <field name="shipping_cost" type="measure"/>
                 <field name="cost_of_packaging" type="measure"/>
+                <field name="amount" type="measure" />
             </pivot>
-        </field>
+         </field>
     </record>
 
     <record id="view_system_confirmation_shipping_graph" model="ir.ui.view">
@@ -105,6 +108,7 @@
                 <field name="origin"/>
                 <field name="shipping_cost" type="measure"/>
                 <field name="cost_of_packaging" type="measure"/>
+                <field name="amount" type="measure" />
             </graph>
         </field>
     </record>

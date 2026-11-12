@@ -67,7 +67,7 @@ class ColisConfirmation(models.Model):
             "system.confirmation.colis"
         ),
     )
-    amount = fields.Monetary("Amount", default=0.0)
+    amount = fields.Monetary("Amount", default=0.0, aggregator="sum")
     company_id = fields.Many2one(
         "res.company",
         required=True,
@@ -158,7 +158,7 @@ class ColisConfirmation(models.Model):
             ("DOUBLE", "Double"),
             ("cancelled", "Annulé"),
         ],
-        string="Statut de commande",
+        string="Statut de Quicklivraison",
         required=True,
         default="draft",
         copy=False,
@@ -214,7 +214,7 @@ class ColisConfirmation(models.Model):
             ("Annulee", "Annulée"),
             ("Perdu", "Perdu"),
         ],
-        string="Statut de livraison",
+        string="Statut de Dozani",
         readonly=True,
         default="Brouillon",
         copy=False,
@@ -861,6 +861,7 @@ class ColisLinesConfirmationSystem(models.Model):
     client = fields.Many2one(related="colis_id.client", store=True)
     date = fields.Date(related="colis_id.date", store=True)
     colis_state = fields.Selection(related="colis_id.colis_state", store=True)
+    colis_state_dozani = fields.Selection(related="colis_id.delivery_status", store=True)
     # Shares of the colis-level costs: summing the lines of a colis always
     # gives back the colis value (see _compute_colis_shared_costs).
     shipping_cost = fields.Monetary(
@@ -868,6 +869,7 @@ class ColisLinesConfirmationSystem(models.Model):
         compute="_compute_colis_shared_costs",
         store=True,
     )
+    amount = fields.Monetary("Amount", compute="_compute_colis_shared_amount",  store=True, aggregator="sum")
     cost_of_packaging = fields.Float(
         "Frais de l'emballage",
         compute="_compute_colis_shared_costs",
@@ -975,7 +977,36 @@ class ColisLinesConfirmationSystem(models.Model):
                 shares.append(share)
             line.shipping_cost = shares[0]
             line.cost_of_packaging = shares[1]
-
+    
+    @api.depends(
+            "colis_id.amount",
+            "colis_id.items_line_ids",
+        )        
+    def _compute_colis_shared_amount(self):
+            """Split the colis-level amount evenly over the colis's lines.
+            .
+            """
+            for line in self:
+                colis = line.colis_id
+                siblings = colis.items_line_ids
+                count = len(siblings)
+                position = next(
+                    (index for index, sibling in enumerate(siblings) if sibling == line),
+                    None,
+                )
+                currency = colis.currency_id or self.env.company.currency_id
+                shares = []
+                for total in (colis.amount,):
+                    total = total or 0.0
+                    if position is None:
+                        share = 0.0
+                    else:
+                        before = currency.round(total * position / count)
+                        after = currency.round(total * (position + 1) / count)
+                        share = currency.round(after - before)
+                    shares.append(share)
+                line.amount = shares[0]
+               
     @api.constrains("quantity", "uom_id")
     def _check_quantity(self):
         for line in self:

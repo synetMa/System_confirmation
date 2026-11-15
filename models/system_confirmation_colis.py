@@ -58,6 +58,7 @@ class ColisConfirmation(models.Model):
 
     _order = "date desc, id desc"
     active = fields.Boolean("Active", default=True)
+    paid_date = fields.Date("Paid date", tracking=True)
     _check_company_auto = True
     name = fields.Char(
         required=True,
@@ -166,10 +167,10 @@ class ColisConfirmation(models.Model):
         tracking=True,
     )
     client_adresse = fields.Char(
-        string="Adresse",
-        compute="_compute_client_snapshot",
-        store=True,
-        readonly=False,
+    related="client.adresse", store=True, readonly=False
+    )
+    client_ville = fields.Many2one(
+        related="client.ville", store=True, readonly=False
     )
     client_qrcode = fields.Binary(
         string="Client QR Code",
@@ -177,13 +178,6 @@ class ColisConfirmation(models.Model):
         attachment=True,
         store=True,
         readonly=True,
-    )
-    client_ville = fields.Many2one(
-        "system.confirmation.villes",
-        string="Ville",
-        compute="_compute_client_snapshot",
-        store=True,
-        readonly=False,
     )
 
     @api.depends("client")
@@ -857,6 +851,7 @@ class ColisLinesConfirmationSystem(models.Model):
     colis_id = fields.Many2one(
         "system.confirmation.colis", required=True, index=True, ondelete="cascade"
     )
+    paid_date = fields.Date(related="colis_id.paid_date", store=True)
     origin = fields.Many2one(related="colis_id.origin", store=True)
     client = fields.Many2one(related="colis_id.client", store=True)
     date = fields.Date(related="colis_id.date", store=True)

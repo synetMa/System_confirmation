@@ -19,6 +19,8 @@ class TrackPackageSync(models.Model):
                 if package.colis_id != colis:
                     package.sudo().colis_id = colis
                 colis.delivery_status = package.state
+                if package.state == "Payee" and not colis.paid_date:
+                    colis.paid_date = fields.Date.context_today(colis)
                 if (
                     package.state == "Retournee"
                     and previous_states.get(package.id) != "Retournee"

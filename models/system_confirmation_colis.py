@@ -461,7 +461,7 @@ class ColisConfirmation(models.Model):
         Never touches delivery_status.
         """
         self.ensure_one()
-        status = (result.get("status") or "").strip()
+        status = (result.get("status_second" or result.get("status")   or "")).strip()
         date_livraison = result.get("date_livraison")
         new_state = QUICKLIVRAISON_STATE_MAP.get(status)
         if not new_state and date_livraison:

@@ -197,6 +197,12 @@ class ColisConfirmation(models.Model):
         default="draft",
         copy=False,
     )
+    last_sync_attempt = fields.Datetime(
+    string="Last QuickLivraison Sync Attempt",
+    readonly=True,
+    copy=False,
+    index=True,
+    )
     out_of_stock = fields.Boolean("rupture de stock", default=False)
     delivery_status = fields.Selection(
         [
@@ -500,6 +506,8 @@ class ColisConfirmation(models.Model):
         self.colis_state = new_state
         self.message_api = message
         self.message_post(body=message, subtype_xmlid="mail.mt_note")
+
+      
         return True
 
     def _sync_from_quicklivraison(self):
@@ -510,33 +518,40 @@ class ColisConfirmation(models.Model):
                 order.message_api = _("No tracking number available.")
                 continue
             try:
-                headers = {
-                    "Accept": "application/json",
-                }
-                response = requests.get(
-                    api_url + str(order.tracking_number), headers=headers, timeout=15
-                )
-                _logger.info(
-                    "QuickLivraison response: %s - %s",
-                    response.status_code,
-                    response.text,
-                )
-                try:
-                    result = response.json()
-                except ValueError:
-                    result = {}
-                if response.ok:
-                    order._apply_quicklivraison_status(result)
-                else:
-                    order.message_api = _(
-                        "Status: %(status)s, Situation: %(situation)s"
-                    ) % {
-                        "status": result.get("status"),
-                        "situation": result.get("situation"),
+                with self.env.cr.savepoint():
+                    headers = {
+                        "Accept": "application/json",
                     }
-            except requests.exceptions.RequestException as e:
-                _logger.error("QuickLivraison API error: %s", e)
-                order.message_api = _("Error calling the API: %s") % e
+                    response = requests.get(
+                        api_url + str(order.tracking_number), headers=headers, timeout=15
+                    )
+                    _logger.info(
+                        "QuickLivraison response: %s - %s",
+                        response.status_code,
+                        response.text,
+                    )
+                    try:
+                        result = response.json()
+                    except ValueError:
+                        result = {}
+                    if response.ok:
+                        order._apply_quicklivraison_status(result)
+                    else:
+                        order.message_api = _(
+                            "Status: %(status)s, Situation: %(situation)s"
+                        ) % {
+                            "status": result.get("status"),
+                            "situation": result.get("situation"),
+                        }
+            except requests.exceptions.RequestException as error:
+                _logger.error("QuickLivraison API error: %s", error)
+                order.message_api = _("Error calling the API: %s") % error
+
+            except Exception as error:
+                _logger.exception("Status sync failed for parcel %s", order.name)
+                order.message_api = _("Status sync failed: %s") % error
+            finally:
+                order.last_sync_attempt = fields.Datetime.now()
         return True
 
     def action_deliver(self):
@@ -805,7 +820,7 @@ class ColisConfirmation(models.Model):
     def _cron_retry_failed_api(self):
         colis_to_retry = self.search(
             [("api_state", "=", "error"), ("colis_state", "=", "confirmed")],
-            limit=50,
+            limit=100,
         )
         for colis in colis_to_retry:
             colis.create_package_api(colis)
@@ -818,9 +833,11 @@ class ColisConfirmation(models.Model):
             [
                 ("api_state", "=", "sent"),
                 ("tracking_number", "!=", False),
+
                 ("colis_state", "not in", list(QUICKLIVRAISON_FINAL_STATES)),
             ],
-            limit=50,
+            order="last_sync_attempt asc nulls first, id asc",
+            limit=100,
         )
         colis_to_sync._sync_from_quicklivraison()
         return True

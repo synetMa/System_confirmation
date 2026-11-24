@@ -8,3 +8,4 @@ from . import track_package_sync
 from . import system_confirmation_villes
 from . import ir_actions_report
 from . import parcel_workflow
+from . import order_creation

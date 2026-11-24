@@ -68,7 +68,7 @@ class ColisConfirmation(models.Model):
             "system.confirmation.colis"
         ),
     )
-    amount = fields.Monetary("Amount", default=0.0, aggregator="sum")
+    amount = fields.Monetary("Amount", default=0.0, aggregator="sum", tracking=True)
     company_id = fields.Many2one(
         "res.company",
         required=True,
@@ -81,7 +81,7 @@ class ColisConfirmation(models.Model):
         store=True,
         readonly=True,
     )
-    client = fields.Many2one("system.confirmation.client", "Client")
+    client = fields.Many2one("system.confirmation.client", "Client", tracking=True)
 
     message_api = fields.Char("Message de api (QuickLivraison)")
     cost_of_packaging = fields.Float(
@@ -91,7 +91,7 @@ class ColisConfirmation(models.Model):
         readonly=True,
     )
     origin = fields.Many2one(
-        "system.confirmation.origin", required=True, ondelete="restrict"
+        "system.confirmation.origin", required=True, ondelete="restrict", tracking=True
     )
 
     items_line_ids = fields.One2many(
@@ -186,7 +186,7 @@ class ColisConfirmation(models.Model):
             colis.client_adresse = colis.client.adresse
             colis.client_ville = colis.client.ville
 
-    shipping_cost = fields.Monetary("Shipping Cost", default=0.0)
+    shipping_cost = fields.Monetary("Shipping Cost", default=0.0, tracking=True)
     api_state = fields.Selection(
         [
             ("draft", "Brouillon"),

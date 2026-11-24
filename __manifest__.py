@@ -1,6 +1,6 @@
 {
     "name": "System de confirmation",
-    "version": "18.0.2.0.2",
+    "version": "18.0.2.0.3",
     "license": "LGPL-3",
     "category": "Tools",
     "author": "Dozani",
@@ -23,7 +23,13 @@
         "views/system_confirmation_villes.xml",
         "views/system_confirmation_keyword.xml",
         "views/reporting.xml",
+        "views/create_menu.xml",
         "views/menuitems.xml",
     ],
+    "assets": {
+            "web.assets_backend": [
+                "system_confirmation/static/src/components/main-view/**/*",
+            ],
+        },
     "demo": ["data/demo.xml"],
 }

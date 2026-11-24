@@ -9,13 +9,14 @@
                 <page
                     string="System Confirmation"
                     name="system_confirmation"
-                    groups="system_confirmation.group_system_confirmation_user">
+                    groups="system_confirmation.group_system_confirmation_user,system_confirmation.group_order_creator">
                     <group>
                         <field name="confirmation_origin_id"/>
                     </group>
                     <div class="text-muted">
                         If an origin is set, this user only sees the colis and clients
-                        coming from that origin. Leave empty to see everything.
+                        coming from that origin. Order creators must have an origin;
+                        other confirmation users see everything when it is empty.
                     </div>
                 </page>
             </xpath>

@@ -17,6 +17,16 @@
         <field name="comment">Can use clients, origins and colis.</field>
     </record>
 
+    <record id="module_category_order_creation" model="ir.module.category">
+        <field name="name">Order Creation</field>
+        <field name="sequence">61</field>
+    </record>
+    <record id="group_order_creator" model="res.groups">
+        <field name="name">Order Creator</field>
+        <field name="category_id" ref="module_category_order_creation"/>
+        <field name="comment">Creates draft orders and edits their customer information for the assigned origin.</field>
+    </record>
+
     <record id="group_system_confirmation_manager" model="res.groups">
         <field name="name">Manager</field>
         <field name="category_id" ref="module_category_system_confirmation"/>

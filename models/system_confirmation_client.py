@@ -4,13 +4,14 @@ from odoo import fields, models, api
 class ClientSystemConfirmation(models.Model):
     _name = "system.confirmation.client"
     _description = "System de confirmation Customer"
+    _inherit = ["mail.thread"]
 
     _order = "name, id"
 
     name = fields.Char(required=True,index=True, tracking=True)
-    telephone = fields.Char(index=True)
-    adresse = fields.Char()
-    ville = fields.Many2one("system.confirmation.villes", string="Ville")
+    telephone = fields.Char(index=True, tracking=True)
+    adresse = fields.Char(tracking=True)
+    ville = fields.Many2one("system.confirmation.villes", string="Ville", tracking=True)
 
     colis_ids = fields.One2many(
         "system.confirmation.colis", "client", string="Colis"

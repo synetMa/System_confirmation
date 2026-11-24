@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="order_creation_process.main_view">
+        <div class="o_order_creator">
+            <div class="o_order_creator__inner">
+                <div class="o_order_creator__heading">
+                    <div class="o_order_creator__heading_content">
+                        <div class="o_order_creator__heading_top">
+                            <div class="o_order_creator__eyebrow"><span class="o_order_creator__brand_icon"><i class="fa fa-cube" aria-hidden="true"/></span> SYSTEM CONFIRMATION</div>
+                            <button type="button" class="o_order_creator__navigation" t-on-click="toggleNavigation" t-att-aria-pressed="state.navigationVisible ? 'true' : 'false'">
+                                <i class="fa fa-bars" aria-hidden="true"/>
+                                <!-- <t t-esc="state.navigationVisible ? 'Masquer le menu' : 'Menu Odoo'"/> -->
+                            </button>
+                        </div>
+                        <h1 style="color: white;">Commandes</h1>
+                        <p>Créez, gérez et suivez vos colis au même endroit.</p>
+                    </div>
+                    <span class="o_order_creator__origin"><i class="fa fa-map-marker"/> <t t-esc="state.origin || 'Origine non définie'"/></span>
+                </div>
+                <nav class="o_order_creator__tabs" aria-label="Commandes">
+                    <button type="button" t-att-class="state.tab === 'create' ? 'active' : ''" t-on-click="showCreate"><i class="fa fa-plus-circle" aria-hidden="true"/> Créer</button>
+                    <button type="button" t-att-class="state.tab !== 'create' ? 'active' : ''" t-on-click="showOrders"><i class="fa fa-cubes" aria-hidden="true"/> Mes colis</button>
+                </nav>
+
+                <t t-if="state.tab === 'create'">
+                    <div class="o_order_creator__steps">
+                        <span t-att-class="state.step === 1 ? 'active' : 'complete'" t-att-aria-current="state.step === 1 ? 'step' : false"><b>1</b> Produits</span>
+                        <span t-att-class="state.step === 2 ? 'active' : (state.step > 2 ? 'complete' : '')" t-att-aria-current="state.step === 2 ? 'step' : false"><b>2</b> Panier</span>
+                        <span t-att-class="state.step === 3 ? 'active' : ''" t-att-aria-current="state.step === 3 ? 'step' : false"><b>3</b> Client</span>
+                    </div>
+                    <section class="o_order_creator__card o_order_creator__step_panel" t-att-class="state.stepDirection === 'back' ? 'o_order_creator__step_panel--back' : ''" t-if="state.step === 1">
+                        <h2>Choisir les produits</h2>
+                        <p>Recherchez un produit par nom ou référence.</p>
+                        <label class="o_order_creator__label" for="order-product-search">Rechercher</label>
+                        <input id="order-product-search" class="o_order_creator__input" type="search" placeholder="Nom ou référence du produit" t-att-value="state.query" t-on-input="onSearch"/>
+                        <div class="o_order_creator__list">
+                            <div class="o_order_creator__row" t-foreach="state.products" t-as="product" t-key="product.id">
+                                <div class="o_order_creator__product">
+                                    <span class="o_order_creator__product_image"><i class="fa fa-picture-o" aria-hidden="true"/><img t-att-src="'/web/image/product.product/' + product.id + '/image_128'" alt="" loading="lazy" t-on-error="onProductImageError"/></span>
+                                    <div><strong t-esc="product.name"/><small t-esc="product.default_code || 'Sans référence'"/></div>
+                                </div>
+                                <button type="button" class="o_order_creator__secondary" t-on-click="() => this.addItem(product)"><i class="fa fa-plus"/> Ajouter</button>
+                            </div>
+                            <p t-if="!state.products.length" class="o_order_creator__empty">Aucun produit trouvé.</p>
+                        </div>
+                    </section>
+                    <section class="o_order_creator__card o_order_creator__step_panel" t-att-class="state.stepDirection === 'back' ? 'o_order_creator__step_panel--back' : ''" t-if="state.step === 2">
+                        <h2>Votre panier</h2>
+                        <p>Vérifiez les quantités avant de continuer.</p>
+                        <div class="o_order_creator__list">
+                            <div class="o_order_creator__row" t-foreach="state.cart" t-as="product" t-key="product.id">
+                                <div class="o_order_creator__product">
+                                    <span class="o_order_creator__product_image"><i class="fa fa-picture-o" aria-hidden="true"/><img t-att-src="'/web/image/product.product/' + product.id + '/image_128'" alt="" loading="lazy" t-on-error="onProductImageError"/></span>
+                                    <div><strong t-esc="product.name"/><small t-esc="product.default_code || 'Sans référence'"/></div>
+                                </div>
+                                <div class="o_order_creator__quantity">
+                                    <button type="button" t-on-click="() => this.removeItem(product)" t-att-aria-label="'Retirer ' + product.name">−</button>
+                                    <span t-esc="product.quantity"/>
+                                    <button type="button" t-on-click="() => this.addItem(product)" t-att-aria-label="'Ajouter ' + product.name">+</button>
+                                </div>
+                            </div>
+                            <p t-if="!state.cart.length" class="o_order_creator__empty">Votre panier est vide.</p>
+                        </div>
+                    </section>
+                    <section class="o_order_creator__card o_order_creator__step_panel" t-att-class="state.stepDirection === 'back' ? 'o_order_creator__step_panel--back' : ''" t-if="state.step === 3">
+                        <h2>Informations du client</h2>
+                        <p>La commande sera enregistrée en brouillon, sans confirmation.</p>
+                        <label class="o_order_creator__label" for="order-amount">Montant total</label>
+                        <input id="order-amount" class="o_order_creator__input" type="number" min="0" step="0.01" t-model="state.amount" placeholder="0,00"/>
+                        <t t-set="customer" t-value="state.customer"/>
+                        <t t-call="order_creation_process.customer_fields"/>
+                    </section>
+                    <div class="o_order_creator__footer o_order_creator__footer--floating">
+                        <button type="button" class="o_order_creator__secondary" t-if="state.step > 1" t-on-click="previousStep">Retour</button>
+                        <span class="o_order_creator__step_hint">Étape <t t-esc="state.step"/> / 3</span>
+                        <span class="o_order_creator__spacer"/>
+                        <span class="o_order_creator__hint"><t t-esc="state.cart.length"/> produit(s) sélectionné(s)</span>
+                        <button type="button" class="o_order_creator__primary" t-if="state.step &lt; 3" t-on-click="nextStep">Continuer <i class="fa fa-arrow-right"/></button>
+                        <button type="button" class="o_order_creator__primary" t-if="state.step === 3" t-att-disabled="state.busy" t-on-click="createOrder">Créer le brouillon</button>
+                    </div>
+                </t>
+
+                <section class="o_order_creator__card" t-if="state.tab === 'orders'">
+                    <h2>Mes colis</h2>
+                    <p>Les colis de votre origine. Seuls les brouillons sont modifiables.</p>
+                    <div class="o_order_creator__list">
+                        <div class="o_order_creator__row" t-foreach="state.orders" t-as="order" t-key="order.id">
+                            <div class="o_order_creator__order_summary">
+                                <div><strong t-esc="order.name"/><small><t t-esc="order.client_name"/> · <t t-esc="order.date"/> · <t t-esc="order.amount"/></small></div>
+                                <span t-att-class="'o_order_creator__badge ' + this.stateClass(order.state)" t-esc="order.state_label"/>
+                            </div>
+                            <div class="o_order_creator__row_actions">
+                                <button type="button" class="o_order_creator__secondary" t-if="order.state === 'draft' &amp;&amp; order.client_name" t-on-click="() => this.editOrder(order)">Modifier le client</button>
+                                <button type="button" class="o_order_creator__secondary" t-if="order.state === 'draft'" t-att-disabled="state.busy" t-on-click="() => this.editProducts(order)">Modifier les produits</button>
+                            </div>
+                        </div>
+                        <p t-if="!state.orders.length" class="o_order_creator__empty">Aucun colis pour cette origine.</p>
+                    </div>
+                    <div class="o_order_creator__footer" t-if="state.page > 0 || state.hasMore">
+                        <button type="button" class="o_order_creator__secondary" t-att-disabled="state.page === 0" t-on-click="() => this.changePage(-1)">Précédent</button>
+                        <span class="o_order_creator__hint">Page <t t-esc="state.page + 1"/></span>
+                        <button type="button" class="o_order_creator__secondary" t-att-disabled="!state.hasMore" t-on-click="() => this.changePage(1)">Suivant</button>
+                    </div>
+                </section>
+                <section class="o_order_creator__card" t-if="state.tab === 'editProducts'">
+                    <h2>Produits · <t t-esc="state.editingName"/></h2>
+                    <p>Modifiez les produits du brouillon. Les changements sont enregistrés dans l’historique ; le montant de la commande reste inchangé.</p>
+                    <div class="o_order_creator__list">
+                        <div class="o_order_creator__row" t-foreach="state.editItems" t-as="line" t-key="line.key">
+                            <div class="o_order_creator__product">
+                                <span class="o_order_creator__product_image"><i class="fa fa-picture-o" aria-hidden="true"/><img t-att-src="'/web/image/product.product/' + line.product_id + '/image_128'" alt="" loading="lazy" t-on-error="onProductImageError"/></span>
+                                <div><strong t-esc="line.name"/><small t-esc="line.default_code || 'Sans référence'"/></div>
+                            </div>
+                            <div class="o_order_creator__row_actions">
+                                <div class="o_order_creator__quantity">
+                                    <button type="button" t-att-aria-label="'Diminuer ' + line.name" t-on-click="() => this.changeEditQuantity(line, -1)">−</button>
+                                    <input type="number" class="o_order_creator__quantity_input" min="0.001" step="0.001" t-att-aria-label="'Quantité de ' + line.name" t-model="line.quantity"/>
+                                    <button type="button" t-att-aria-label="'Augmenter ' + line.name" t-on-click="() => this.changeEditQuantity(line, 1)">+</button>
+                                </div>
+                                <button type="button" class="o_order_creator__secondary" t-on-click="() => this.removeEditProduct(line)">Retirer</button>
+                            </div>
+                        </div>
+                        <p t-if="!state.editItems.length" class="o_order_creator__empty">Aucun produit dans ce brouillon.</p>
+                    </div>
+                    <h2 class="o_order_creator__section_title">Ajouter un produit</h2>
+                    <label class="o_order_creator__label" for="edit-product-search">Rechercher par nom ou référence</label>
+                    <input id="edit-product-search" class="o_order_creator__input" type="search" placeholder="Nom ou référence du produit" t-att-value="state.query" t-on-input="onSearch"/>
+                    <div class="o_order_creator__list">
+                        <div class="o_order_creator__row" t-foreach="state.products" t-as="product" t-key="product.id">
+                            <div class="o_order_creator__product">
+                                <span class="o_order_creator__product_image"><i class="fa fa-picture-o" aria-hidden="true"/><img t-att-src="'/web/image/product.product/' + product.id + '/image_128'" alt="" loading="lazy" t-on-error="onProductImageError"/></span>
+                                <div><strong t-esc="product.name"/><small t-esc="product.default_code || 'Sans référence'"/></div>
+                            </div>
+                            <button type="button" class="o_order_creator__secondary" t-on-click="() => this.addEditProduct(product)"><i class="fa fa-plus"/> Ajouter</button>
+                        </div>
+                        <p t-if="!state.products.length" class="o_order_creator__empty">Aucun produit trouvé.</p>
+                    </div>
+                    <div class="o_order_creator__footer o_order_creator__footer--floating">
+                        <button type="button" class="o_order_creator__secondary" t-att-disabled="state.busy" t-on-click="cancelEdit">Annuler</button>
+                        <span class="o_order_creator__spacer"/>
+                        <button type="button" class="o_order_creator__primary" t-att-disabled="state.busy" t-on-click="saveProducts">Enregistrer</button>
+                    </div>
+                </section>
+                <section class="o_order_creator__card" t-if="state.tab === 'edit'">
+                    <h2>Modifier le client</h2>
+                    <p>Ces informations ne peuvent être modifiées que pour un brouillon.</p>
+                    <t t-set="customer" t-value="state.editCustomer"/>
+                    <t t-call="order_creation_process.customer_fields"/>
+                    <div class="o_order_creator__footer o_order_creator__footer--floating">
+                        <button type="button" class="o_order_creator__secondary" t-on-click="cancelEdit">Annuler</button>
+                        <span class="o_order_creator__spacer"/>
+                        <button type="button" class="o_order_creator__primary" t-att-disabled="state.busy" t-on-click="saveCustomer">Enregistrer</button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </t>
+    <t t-name="order_creation_process.customer_fields">
+        <div class="o_order_creator__form">
+            <div><label class="o_order_creator__label" for="order-client-name">Nom du client</label><input id="order-client-name" class="o_order_creator__input" type="text" t-model="customer.name" placeholder="Nom complet"/></div>
+            <div><label class="o_order_creator__label" for="order-client-phone">Téléphone</label><input id="order-client-phone" class="o_order_creator__input" type="tel" t-model="customer.phone" placeholder="Numéro de téléphone"/></div>
+            <div><label class="o_order_creator__label" for="order-client-city">Ville</label>
+                <input id="order-client-city" class="o_order_creator__input" type="text"
+                    list="order-city-options" placeholder="Rechercher une ville..."
+                    t-att-value="customer.cityText" t-on-input="(ev) => this.onCityInput(customer, ev)"
+                    t-att-aria-invalid="customer.cityText &amp;&amp; !customer.city ? 'true' : 'false'"
+                    aria-describedby="order-city-hint"/>
+                <datalist id="order-city-options">
+                    <option t-foreach="state.cities" t-as="city" t-key="city.id" t-att-value="city.label"/>
+                </datalist>
+                <small id="order-city-hint" class="o_order_creator__field_hint">Choisissez une ville dans les suggestions.</small>
+            </div>
+            <div><label class="o_order_creator__label" for="order-client-address">Adresse</label><input id="order-client-address" class="o_order_creator__input" type="text" t-model="customer.address" placeholder="Adresse de livraison"/></div>
+        </div>
+    </t>
+</templates>

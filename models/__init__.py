@@ -9,3 +9,4 @@ from . import system_confirmation_villes
 from . import ir_actions_report
 from . import parcel_workflow
 from . import order_creation
+from . import parcel_reservation

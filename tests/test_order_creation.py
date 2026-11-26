@@ -57,6 +57,47 @@ class TestOrderCreation(TransactionCase):
         with self.assertRaises(AccessError):
             order.with_user(self.creator).create_package_api(order.with_user(self.creator))
 
+    def test_viewer_can_use_creation_interface_but_not_modify_colis_directly(self):
+        viewer = self.env["res.users"].create({
+            "name": "Viewer order creator",
+            "login": "test_viewer_order_creator",
+            "confirmation_origin_id": self.origin.id,
+            "groups_id": [(6, 0, [
+                self.env.ref("base.group_user").id,
+                self.env.ref("system_confirmation.group_system_confirmation_viewer").id,
+            ])],
+        })
+        visible = self.env["ir.ui.menu"].with_user(viewer)._visible_menu_ids()
+        self.assertIn(self.env.ref("system_confirmation.order_creation_process_system_confirmation").id, visible)
+        api = self.env["system.confirmation.colis"].with_user(viewer)
+        self.assertEqual(api.creation_options()["origin"], self.origin.name)
+        result = api.create_draft_order({
+            "client": self.customer, "amount": 100,
+            "items": [{"product_id": self.product.id, "quantity": 2}],
+        })
+        order = self.env["system.confirmation.colis"].browse(result["id"])
+        self.assertEqual(order.origin, self.origin)
+        self.assertEqual(order.colis_state, "draft")
+        original = api.creation_order_lines(order.id)
+        api.update_draft_products(order.id, [dict(original[0], quantity=3)], original, 125, 100)
+        api.update_draft_customer(order.id, dict(self.customer, address="Viewer address"))
+        self.assertEqual(order.items_line_ids.quantity, 3)
+        self.assertEqual(order.amount, 125)
+        messages = order.message_ids.filtered(lambda message: "Amount changed" in (message.body or ""))
+        self.assertTrue(messages)
+        self.assertEqual(messages[0].author_id, viewer.partner_id)
+        self.assertEqual(order.client.adresse, "Viewer address")
+        with self.assertRaises(AccessError):
+            order.with_user(viewer).write({"amount": 99})
+        with self.assertRaises(AccessError):
+            order.with_user(viewer).action_confirm()
+        foreign = self.env["system.confirmation.colis"].create({"origin": self.other_origin.id})
+        with self.assertRaises(AccessError):
+            api.update_draft_customer(foreign.id, self.customer)
+        viewer.confirmation_origin_id = False
+        with self.assertRaises(UserError):
+            api.creation_options()
+
     def test_origin_isolation_and_no_origin(self):
         order = self.create_order()
         other = self.env["system.confirmation.colis"].create({"origin": self.other_origin.id})
@@ -152,6 +193,31 @@ class TestOrderCreation(TransactionCase):
                 "line_id": other.items_line_ids.id, "product_id": self.product.id, "quantity": 1,
             }], original)
         self.assertEqual(order.items_line_ids.quantity, 2)
+
+    def test_product_edit_amount_validation_and_concurrency(self):
+        order = self.create_order()
+        api = self.env["system.confirmation.colis"].with_user(self.creator)
+        original = api.creation_order_lines(order.id)
+        changed = [dict(original[0], quantity=3)]
+        for invalid in (-1, "nan", "inf", ""):
+            with self.assertRaises(UserError):
+                api.update_draft_products(order.id, changed, original, invalid, 100)
+        self.assertEqual(order.amount, 100)
+        self.assertEqual(order.items_line_ids.quantity, 2)
+        order.write({"amount": 110})
+        with self.assertRaises(UserError):
+            api.update_draft_products(order.id, changed, original, 120, 100)
+        self.assertEqual(order.amount, 110)
+        self.assertEqual(order.items_line_ids.quantity, 2)
+        api.update_draft_products(order.id, changed, original, 0, 110)
+        self.assertEqual(order.amount, 0)
+        self.assertEqual(order.items_line_ids.quantity, 3)
+        order.colis_state = "confirmed"
+        with self.assertRaises(UserError):
+            api.update_draft_products(order.id, changed, api.creation_order_lines(order.id), 120, 0)
+        foreign = self.env["system.confirmation.colis"].create({"origin": self.other_origin.id})
+        with self.assertRaises(AccessError):
+            api.update_draft_products(foreign.id, [], [], 120, 0)
 
     def test_creator_sees_only_creation_menu_in_module(self):
         visible = self.env["ir.ui.menu"].with_user(self.creator)._visible_menu_ids()

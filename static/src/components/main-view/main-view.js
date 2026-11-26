@@ -16,7 +16,8 @@ class CreationProcess extends Component {
             tab: "create", step: 1, stepDirection: "next", origin: "", cities: [], products: [], cart: [],
             query: "", amount: "", customer: this.emptyCustomer(), orders: [], page: 0, hasMore: false,
             editingId: false, editingName: "", editCustomer: this.emptyCustomer(),
-            editItems: [], originalItems: [], busy: false, navigationVisible: false,
+            editItems: [], originalItems: [], editAmount: "", originalAmount: null,
+            busy: false, navigationVisible: false,
         });
         onWillStart(async () => {
             try {
@@ -208,6 +209,8 @@ class CreationProcess extends Component {
             );
             this.state.editingId = order.id;
             this.state.editingName = order.name;
+            this.state.editAmount = String(order.amount);
+            this.state.originalAmount = order.amount;
             this.state.originalItems = lines.map((line) => ({
                 line_id: line.line_id, product_id: line.product_id, quantity: line.quantity,
             }));
@@ -247,6 +250,11 @@ class CreationProcess extends Component {
 
     async saveProducts() {
         if (this.state.busy) return;
+        if (this.state.editAmount === "" || !Number.isFinite(Number(this.state.editAmount)) ||
+            Number(this.state.editAmount) < 0) {
+            this.notification.add("Saisissez un montant valide et positif ou nul.", { type: "warning" });
+            return;
+        }
         if (this.state.editItems.some((line) => !Number.isFinite(Number(line.quantity)) ||
             Number(line.quantity) <= 0)) {
             this.notification.add("Saisissez une quantité positive pour chaque produit.", { type: "warning" });
@@ -261,9 +269,11 @@ class CreationProcess extends Component {
                     quantity: Number(line.quantity),
                 })),
                 this.state.originalItems,
+                Number(this.state.editAmount),
+                this.state.originalAmount,
             ]);
             this.cancelEdit();
-            this.notification.add("Produits enregistrés.", { type: "success" });
+            this.notification.add("Produits et montant enregistrés.", { type: "success" });
             await this.refreshOrders();
         } catch (error) {
             this.notifyError(error);
@@ -276,6 +286,8 @@ class CreationProcess extends Component {
         this.state.editCustomer = this.emptyCustomer();
         this.state.editItems = [];
         this.state.originalItems = [];
+        this.state.editAmount = "";
+        this.state.originalAmount = null;
         this.state.editingId = false;
         this.state.tab = "orders";
     }

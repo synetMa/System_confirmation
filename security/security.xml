@@ -11,9 +11,16 @@
         <field name="sequence">60</field>
     </record>
 
+    <record id="group_system_confirmation_viewer" model="res.groups">
+        <field name="name">Viewer</field>
+        <field name="category_id" ref="module_category_system_confirmation"/>
+        <field name="comment">Can view parcels read-only and create or edit draft orders through order creation.</field>
+    </record>
+
     <record id="group_system_confirmation_user" model="res.groups">
         <field name="name">User</field>
         <field name="category_id" ref="module_category_system_confirmation"/>
+        <field name="implied_ids" eval="[(4, ref('group_system_confirmation_viewer'))]"/>
         <field name="comment">Can use clients, origins and colis.</field>
     </record>
 

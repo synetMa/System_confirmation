@@ -15,8 +15,8 @@
                     </group>
                     <div class="text-muted">
                         If an origin is set, this user only sees the colis and clients
-                        coming from that origin. Order creators must have an origin;
-                        other confirmation users see everything when it is empty.
+                        coming from that origin. An origin is required to use order
+                        creation; other confirmation users see everything when it is empty.
                     </div>
                 </page>
             </xpath>

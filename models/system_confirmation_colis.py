@@ -555,6 +555,7 @@ class ColisConfirmation(models.Model):
         return True
 
     def action_deliver(self):
+        self.check_access("write")
         for order in self:
             if order.colis_state in QUICKLIVRAISON_FINAL_STATES:
                 continue

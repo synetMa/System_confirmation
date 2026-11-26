@@ -1,6 +1,6 @@
 {
     "name": "System de confirmation",
-    "version": "18.0.2.0.3",
+    "version": "18.0.2.0.4",
     "license": "LGPL-3",
     "category": "Tools",
     "author": "Dozani",

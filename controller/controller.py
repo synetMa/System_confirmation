@@ -5,6 +5,8 @@ import unicodedata
 from openai import OpenAI
 from odoo import http
 from odoo.http import request
+from psycopg2.extensions import TransactionRollbackError
+from ..models.parcel_reservation import ParcelReservationError
 import qrcode
 import base64
 from io import BytesIO
@@ -207,6 +209,13 @@ class CustomPageController(http.Controller):
                 }
             )
 
+        except ParcelReservationError as error:
+            return request.make_json_response(
+                {"error": "product_reserved", "message": str(error)},
+                status=409,
+            )
+        except TransactionRollbackError:
+            raise
         except Exception:
             _logger.exception("Failed to create package")
             return request.make_json_response(

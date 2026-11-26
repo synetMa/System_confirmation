@@ -143,10 +143,24 @@ class ColisWorkflow(models.Model):
             qty = line.uom_id._compute_quantity(line.quantity, line.product_id.uom_id)
             demand[line.product_id] = demand.get(line.product_id, 0.0) + qty
 
+        products = self.env["product.product"].concat(*demand.keys())
+        products._lock_parcel_reservations()
+        other_demand = {}
+        other_lines = self.env["system.confirmation.colis.lines"].sudo().search([
+            ("product_id", "in", products.filtered(lambda p: p.is_storable).ids),
+            ("colis_id", "!=", self.id),
+            ("colis_id.active", "=", True),
+            ("colis_id.colis_state", "=", "draft"),
+        ])
+        for line in other_lines:
+            product = line.product_id
+            other_demand[product.id] = other_demand.get(product.id, 0.0) + (
+                line.uom_id._compute_quantity(line.quantity, product.uom_id)
+            )
         quant_model = self.env["stock.quant"].sudo().with_company(self.company_id)
         missing = []
         for product, required in demand.items():
-            available = quant_model._get_available_quantity(product, location, strict=True)
+            available = quant_model._get_available_quantity(product, location, strict=True) - other_demand.get(product.id, 0.0)
             if float_compare(available, required, precision_rounding=product.uom_id.rounding) < 0:
                 missing.append("%s (%s / %s)" % (product.display_name, available, required))
         if missing:
@@ -159,6 +173,7 @@ class ColisWorkflow(models.Model):
 
     def create_package_api(self, colis):
         colis.ensure_one()
+        colis.check_access("write")
         if colis.api_state == "sent" and colis.tracking_number:
             return True
         result = super().create_package_api(colis)
@@ -173,6 +188,7 @@ class ColisWorkflow(models.Model):
         return result
 
     def action_confirm(self):
+        self.check_access("write")
         confirmed = self.browse()
         failures = []
         for order in self:
@@ -353,6 +369,7 @@ class ColisWorkflow(models.Model):
         return True
 
     def action_retry_pdf(self):
+        self.check_access("write")
         self.filtered(lambda rec: not rec.ticket_attachment_id)._download_ticket_pdf()
         return True
 

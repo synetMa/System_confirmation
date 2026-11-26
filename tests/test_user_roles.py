@@ -10,6 +10,7 @@ class TestUserRoles(TransactionCase):
         category = self.env.ref("system_confirmation.module_category_system_confirmation")
         groups = self.env["res.groups"]
         role_groups = [
+            self.env.ref("system_confirmation.group_system_confirmation_viewer"),
             self.env.ref("system_confirmation.group_system_confirmation_user"),
             self.env.ref("system_confirmation.group_system_confirmation_return_validator"),
             self.env.ref("system_confirmation.group_system_confirmation_manager"),
@@ -29,12 +30,59 @@ class TestUserRoles(TransactionCase):
             "login": "confirmation_role_switching_test",
             "groups_id": [(6, 0, [self.env.ref("base.group_user").id])],
         })
-        for selected in (role_groups[2], role_groups[1], role_groups[0], False):
+        for selected in reversed(role_groups + [False]):
             user.write({field_name: selected.id if selected else False})
             self.assertEqual(user.read([field_name])[0][field_name], selected.id if selected else False)
             expected = role_groups[:role_groups.index(selected) + 1] if selected else []
             self.assertEqual(user.groups_id & sum(role_groups, groups.browse()), sum(expected, groups.browse()))
             self.assertIn(self.env.ref("base.group_user"), user.groups_id)
+
+    def test_viewer_can_read_but_cannot_change_or_confirm_colis(self):
+        origin = self.env["system.confirmation.origin"].create({"name": "Viewer origin"})
+        other_origin = self.env["system.confirmation.origin"].create({"name": "Other origin"})
+        user = self.env["res.users"].create({
+            "name": "Colis viewer",
+            "login": "confirmation_viewer_test",
+            "confirmation_origin_id": origin.id,
+            "groups_id": [(6, 0, [
+                self.env.ref("base.group_user").id,
+                self.env.ref("system_confirmation.group_system_confirmation_viewer").id,
+            ])],
+        })
+        colis = self.env["system.confirmation.colis"].create({"origin": origin.id})
+        other = self.env["system.confirmation.colis"].create({"origin": other_origin.id})
+        product = self.env["product.product"].create({"name": "Viewer test product"})
+        line = self.env["system.confirmation.colis.lines"].create({
+            "colis_id": colis.id,
+            "product_id": product.id,
+            "quantity": 1,
+        })
+        viewed = colis.with_user(user)
+
+        self.assertEqual(viewed.read(["name"])[0]["name"], colis.name)
+        self.assertEqual(line.with_user(user).read(["quantity"])[0]["quantity"], 1)
+        self.assertFalse(other.with_user(user).search([("id", "=", other.id)]))
+        for operation in (
+            lambda: viewed.write({"amount": 99}),
+            lambda: line.with_user(user).write({"quantity": 2}),
+            lambda: line.with_user(user).check_access("unlink"),
+            lambda: self.env["system.confirmation.colis"].with_user(user).create({"origin": origin.id}),
+            lambda: viewed.check_access("unlink"),
+            viewed.action_confirm,
+            viewed.action_retry_pdf,
+            viewed.action_deliver,
+            lambda: viewed.create_package_api(viewed),
+        ):
+            with self.assertRaises(AccessError):
+                operation()
+        self.assertEqual(colis.colis_state, "draft")
+        self.assertFalse(colis.workflow_lock_at)
+
+        form = self.env["system.confirmation.colis"].with_user(user).get_view(
+            self.env.ref("system_confirmation.system_confirmation_colis_form").id, "form"
+        )
+        arch = etree.fromstring(form["arch"])
+        self.assertFalse(arch.xpath("//button[@name='action_confirm' or @name='action_retry_pdf' or @name='action_deliver' or @name='action_register_return']"))
 
     def test_tracking_and_confirmation_roles_are_independent(self):
         internal = self.env.ref("base.group_user")

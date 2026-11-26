@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="system_confirmation_root" name="System Confirmation" sequence="40"
-        groups="system_confirmation.group_system_confirmation_user,system_confirmation.group_order_creator" />
+        groups="system_confirmation.group_system_confirmation_viewer,system_confirmation.group_order_creator" />
 
     <menuitem id="system_confirmation_client_menu" name="Clients" parent="system_confirmation_root"
         action="action_system_confirmation_client" sequence="1" groups="system_confirmation.group_system_confirmation_user" />
     <menuitem id="system_confirmation_colis_menu" name="Colis" parent="system_confirmation_root"
-        action="action_system_confirmation_colis" sequence="2" groups="system_confirmation.group_system_confirmation_user" />
+        action="action_system_confirmation_colis" sequence="2" groups="system_confirmation.group_system_confirmation_viewer" />
     <menuitem id="system_confirmation_origin_menu" name="Origins" parent="system_confirmation_root"
         action="action_system_confirmation_origin" sequence="3" groups="system_confirmation.group_system_confirmation_user" />
     <menuitem id="system_confirmation_reporting_menu" name="Reporting"
@@ -20,10 +20,10 @@
         parent="system_confirmation_root" action="action_system_confirmation_keyword" sequence="6" groups="system_confirmation.group_system_confirmation_user" />
     <menuitem
         id="order_creation_process_system_confirmation"
-        name="Creer des commandes"
+        name="Créer des commandes"
         action="action_creation_process"
         parent="system_confirmation_root"
-        groups="system_confirmation.group_system_confirmation_user,system_confirmation.group_order_creator"
+        groups="system_confirmation.group_system_confirmation_viewer,system_confirmation.group_order_creator"
         sequence="7"
     />
 </odoo>

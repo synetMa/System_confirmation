@@ -104,7 +104,9 @@
                 </section>
                 <section class="o_order_creator__card" t-if="state.tab === 'editProducts'">
                     <h2>Produits · <t t-esc="state.editingName"/></h2>
-                    <p>Modifiez les produits du brouillon. Les changements sont enregistrés dans l’historique ; le montant de la commande reste inchangé.</p>
+                    <p>Modifiez les produits et le montant du brouillon. Les changements sont enregistrés dans l’historique.</p>
+                    <label class="o_order_creator__label" for="edit-order-amount">Montant total</label>
+                    <input id="edit-order-amount" class="o_order_creator__input" type="number" min="0" step="0.01" t-model="state.editAmount" placeholder="0,00"/>
                     <div class="o_order_creator__list">
                         <div class="o_order_creator__row" t-foreach="state.editItems" t-as="line" t-key="line.key">
                             <div class="o_order_creator__product">

@@ -13,7 +13,7 @@ class OrderCreation(models.Model):
 
     def _check_order_creator_access(self):
         if not (self.env.user.has_group(CREATOR_GROUP) or
-                self.env.user.has_group("system_confirmation.group_system_confirmation_user")):
+                self.env.user.has_group("system_confirmation.group_system_confirmation_viewer")):
             raise AccessError(_("You cannot use order creation."))
         origin = self.env.user.confirmation_origin_id
         if not origin:
@@ -128,7 +128,7 @@ class OrderCreation(models.Model):
             raise AccessError(_("You cannot access this order."))
         if lock:
             order._lock_workflow()
-            order.invalidate_recordset(["origin", "items_line_ids"])
+            order.invalidate_recordset(["origin", "items_line_ids", "amount"])
             if order.origin.id != origin.id:
                 raise AccessError(_("You cannot access this order."))
         return order
@@ -144,8 +144,29 @@ class OrderCreation(models.Model):
             "quantity": line.quantity,
         } for line in order.items_line_ids]
 
+    def _update_draft_amount(self, amount, original):
+        self.ensure_one()
+        try:
+            amount = float(amount)
+            original = float(original)
+        except (TypeError, ValueError):
+            raise UserError(_("Enter a valid non-negative amount."))
+        if not math.isfinite(amount) or amount < 0 or not math.isfinite(original) or original < 0:
+            raise UserError(_("Enter a valid non-negative amount."))
+        if self.amount != original:
+            raise UserError(_("The amount has changed since you opened this order. Reload and try again."))
+        if self.amount != amount:
+            old_amount = self.amount
+            self.write({"amount": amount})
+            self.message_post(
+                body=_("Amount changed: %(old)s → %(new)s") % {
+                    "old": old_amount, "new": amount,
+                },
+                subtype_xmlid="mail.mt_note",
+            )
+
     @api.model
-    def update_draft_products(self, order_id, items, original):
+    def update_draft_products(self, order_id, items, original, amount=None, original_amount=None):
         order = self._creation_order(order_id, lock=True)
         if order.colis_state != "draft":
             raise UserError(_("Products can only be edited on a draft order."))
@@ -188,6 +209,8 @@ class OrderCreation(models.Model):
                     raise UserError(_("Invalid product or quantity."))
                 additions.append({"colis_id": order.id, "product_id": product.id, "quantity": quantity})
 
+        if amount is not None or original_amount is not None:
+            order._update_draft_amount(amount, original_amount)
         lines = self.env["system.confirmation.colis.lines"].sudo()
         for line_id, quantity in updates:
             if current[line_id][1] != quantity:
